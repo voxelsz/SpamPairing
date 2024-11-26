@@ -1,72 +1,49 @@
-const express = require('express');
-const { spam } = require('./spam');
-const app = express();
+const { spawn } = require("child_process");
+const path = require("path");
+require("./server")
 
-const activeSpams = new Map();
+function start() {
+  const args = [path.join(__dirname, "spam.js"), ...process.argv.slice(2)];
+  let processInterval;
 
-app.get('/api/start', async (req, res) => {
-    const nomor = req.query.nomor;
+  const p = spawn(process.argv[0], args, {
+    stdio: ["inherit", "inherit", "inherit", "ipc"],
+  });
 
-    if (!nomor) {
-        return res.status(400).json({
-            status: { status: "gagal", code: 400 },
-            message: { pesan: "Nomor tidak disertakan dalam query." }
-        });
+  p.on("message", (data) => {
+    if (data === "reset") {
+      clearInterval(processInterval);
+      p.kill();
     }
+  });
 
-    if (activeSpams.has(nomor)) {
-        return res.json({
-            status: { status: "sukses", code: 200 },
-            message: { pesan: `Proses ping untuk nomor ${nomor} sudah berjalan.` }
-        });
+  p.on("exit", (code) => {
+    clearInterval(processInterval);
+    if (code === 130) {
+      console.log("[INFO] Proses dihentikan dengan sinyal SIGINT.");
+      process.exit(0); // Keluar dengan status normal
+    } else {
+      console.log("[INFO] Proses keluar. Memulai ulang...");
+      start(); // Restart proses
     }
+  });
 
-    try {
-        const intervalId = await spam(nomor);
-        activeSpams.set(nomor, intervalId);
+  processInterval = setInterval(() => {
+    p.kill();
+  }, 20_000);
+}
 
-        res.json({
-            status: { status: "sukses", code: 200 },
-            message: { pesan: `Proses ping untuk nomor ${nomor} sedang berjalan.` }
-        });
-    } catch (err) {
-        console.error(`Terjadi kesalahan saat memulai ping untuk nomor ${nomor}:`, err);
-        res.status(500).json({
-            status: { status: "gagal", code: 500 },
-            message: { pesan: "Gagal memulai proses ping." }
-        });
-    }
+// Penanganan SIGINT dan SIGTERM
+process.on("SIGINT", () => {
+  console.log("[INFO] Mendapatkan SIGINT. Menghentikan server...");
+  process.exit(0);
+  start()
 });
 
-app.get('/api/stop', (req, res) => {
-    const nomor = req.query.nomor;
-
-    if (!nomor) {
-        return res.status(400).json({
-            status: { status: "gagal", code: 400 },
-            message: { pesan: "Nomor tidak disertakan dalam query." }
-        });
-    }
-
-    const intervalId = activeSpams.get(nomor);
-
-    if (!intervalId) {
-        return res.json({
-            status: { status: "sukses", code: 200 },
-            message: { pesan: `Proses ping untuk nomor ${nomor} tidak ditemukan.` }
-        });
-    }
-
-    clearInterval(intervalId);
-    activeSpams.delete(nomor);
-
-    res.json({
-        status: { status: "sukses", code: 200 },
-        message: { pesan: `Proses ping untuk nomor ${nomor} telah dihentikan.` }
-    });
+process.on("SIGTERM", () => {
+  console.log("[INFO] Mendapatkan SIGTERM. Menghentikan server...");
+  process.exit(0);
+  start()
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
-});
+start();
