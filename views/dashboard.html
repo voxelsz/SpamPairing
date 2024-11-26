@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- Meta Basic -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pairing Spammer - Cryptzx Cloud</title>
+    <meta name="description" content="Pairing Spammer || by Cryptzx-Dev">
+    <meta name="keywords" content="API, Spammer, Cryptzx">
+    <meta name="author" content="Cryptzx-Dev">
+    <link rel="canonical" href="https://pair.cryptzx.us.kg">
+
+    <!-- Meta Open Graph -->
+    <meta property="og:title" content="Pairing Spammer">
+    <meta property="og:description" content="Tools spam nomor whatsapp untuk testing dan otomatisasi">
+    <meta property="og:url" content="https://pair.cryptzx.us.kg/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://cdn0.iconfinder.com/data/icons/flat-round-system/512/archlinux-1024.png">
+
+    <!-- Meta Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pairing Spammer">
+    <meta name="twitter:description" content="Tools spam nomor whatsapp untuk testing">
+    <meta name="twitter:image" content="https://cdn0.iconfinder.com/data/icons/flat-round-system/512/archlinux-1024.png">
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(90deg, #1e3a8a, #2563eb);
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <!-- Navbar -->
+    <nav class="gradient-bg py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-white text-2xl font-bold">Pairing Spammer</h1>
+            <div class="space-x-4">
+                <a href="/dashboard" class="text-white hover:underline">Home</a>
+                <a href="/logger" class="text-white hover:underline">Log</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="py-12">
+        <div class="container mx-auto px-4">
+            <!-- Fetch List Section -->
+            <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-bold gradient-text mb-4">List of Numbers</h2>
+                <button id="fetchList" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Fetch List</button>
+                <ul id="numbersList" class="mt-4 space-y-2">
+                    <li class="text-center text-gray-500">Belum ada data.</li>
+                </ul>
+            </div>
+
+            <!-- Add Number Section -->
+            <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-bold gradient-text mb-4">Add Number</h2>
+                <form id="addForm">
+                    <div class="mb-4">
+                        <label for="addNumber" class="block text-gray-700">Nomor</label>
+                        <input type="text" id="addNumber" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none" placeholder="Masukkan nomor" required>
+                    </div>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add</button>
+                </form>
+            </div>
+
+            <!-- Delete Number Section -->
+            <div class="bg-white shadow-lg rounded-lg p-6">
+                <h2 class="text-xl font-bold gradient-text mb-4">Delete Number</h2>
+                <form id="deleteForm">
+                    <div class="mb-4">
+                        <label for="deleteNumber" class="block text-gray-700">Nomor</label>
+                        <input type="text" id="deleteNumber" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none" placeholder="Masukkan nomor untuk dihapus" required>
+                    </div>
+                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="gradient-bg py-4">
+        <div class="container mx-auto text-center text-white">
+            &copy; 2024 Cryptzx Cloud. All Rights Reserved.
+        </div>
+    </footer>
+
+    <!-- Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const API_BASE_URL = window.location.origin + '/api';
+
+        // Fetch List Logic
+        document.getElementById('fetchList').addEventListener('click', async () => {
+            const button = document.getElementById('fetchList');
+            button.disabled = true;
+            button.textContent = 'Loading...';
+            try {
+                const response = await axios.get(`${API_BASE_URL}/list`);
+                const numbersList = document.getElementById('numbersList');
+                numbersList.innerHTML = '';
+
+                if (response.data.numbers && response.data.numbers.length) {
+                    response.data.numbers.forEach(number => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = number;
+                        listItem.className = 'text-gray-700';
+                        numbersList.appendChild(listItem);
+                    });
+                } else {
+                    numbersList.innerHTML = '<li class="text-center text-gray-500">Tidak ada data.</li>';
+                }
+            } catch (error) {
+                Swal.fire('Error', error.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Fetch List';
+            }
+        });
+
+        // Add Number Logic
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nomor = document.getElementById('addNumber').value.trim();
+            if (!nomor) return;
+
+            try {
+                const response = await axios.post(`${API_BASE_URL}/add`, { nomor });
+                Swal.fire('Berhasil', response.data.message, 'success');
+                e.target.reset();
+            } catch (error) {
+                Swal.fire('Error', error.response?.data?.message || error.message, 'error');
+            }
+        });
+
+        // Delete Number Logic
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nomor = document.getElementById('deleteNumber').value.trim();
+            if (!nomor) return;
+
+            try {
+                const response = await axios.post(`${API_BASE_URL}/del`, { nomor });
+                Swal.fire('Berhasil', response.data.message, 'success');
+                e.target.reset();
+            } catch (error) {
+                Swal.fire('Error', error.response?.data?.message || error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

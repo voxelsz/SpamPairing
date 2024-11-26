@@ -1,0 +1,53 @@
+    <html>
+      <head>
+        <title>PM2 Logs</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+          }
+          header {
+            background: #333;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+          }
+          #logs {
+            flex: 1;
+            padding: 10px;
+            background: #000;
+            color: #0f0;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+          }
+          footer {
+            background: #333;
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+          }
+        </style>
+      </head>
+      <body>
+        <header>Real-Time PM2 Logs</header>
+        <pre id="logs"></pre>
+        <footer>PM2 Logs Viewer</footer>
+        <script>
+          const eventSource = new EventSource('/logs');
+          const logContainer = document.getElementById('logs');
+          eventSource.onmessage = (event) => {
+            logContainer.textContent += event.data + "\\n";
+            logContainer.scrollTop = logContainer.scrollHeight;
+          };
+        </script>
+      </body>
+    </html>

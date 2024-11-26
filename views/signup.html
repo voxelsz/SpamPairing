@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup - Pairing Spammer</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+  <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
+    <h1 class="text-2xl font-bold text-center mb-4">Signup</h1>
+    <form id="signup-form">
+      <div class="mb-4">
+        <label for="email" class="block text-gray-700">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="Masukkan email Anda" 
+          required>
+        <small id="email-error" class="text-red-500 hidden">Email tidak valid.</small>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="block text-gray-700">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="Minimal 8 karakter" 
+          required>
+        <small id="password-error" class="text-red-500 hidden">Password harus minimal 8 karakter.</small>
+      </div>
+      <button id="signup-button" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">Daftar</button>
+    </form>
+    <div class="mt-4 text-center">
+      <p>Sudah punya akun? <a href="/login" class="text-blue-500 hover:underline">Login di sini</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const signupButton = document.getElementById('signup-button');
+      const emailError = document.getElementById('email-error');
+      const passwordError = document.getElementById('password-error');
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      // Reset Error State
+      emailError.classList.add('hidden');
+      passwordError.classList.add('hidden');
+
+      // Validasi Email
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        emailError.classList.remove('hidden');
+        return;
+      }
+
+      // Validasi Password
+      if (password.length < 8) {
+        passwordError.classList.remove('hidden');
+        return;
+      }
+
+      // Disable Button Saat Proses
+      signupButton.disabled = true;
+      signupButton.textContent = 'Memproses...';
+
+      try {
+        // Kirim Data Signup
+        const response = await axios.post('/api/signup', { email, password });
+
+        // Jika Berhasil
+        Swal.fire({
+          icon: 'success',
+          title: 'Pendaftaran Berhasil',
+          text: 'Anda sekarang dapat login.',
+          confirmButtonText: 'OK',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/login'; // Redirect ke halaman login
+          }
+        });
+      } catch (error) {
+        // Jika Gagal
+        Swal.fire({
+          icon: 'error',
+          title: 'Pendaftaran Gagal',
+          text: error.response?.data?.message || 'Terjadi kesalahan. Coba lagi.',
+        });
+      } finally {
+        // Aktifkan Kembali Tombol
+        signupButton.disabled = false;
+        signupButton.textContent = 'Daftar';
+      }
+    });
+  </script>
+</body>
+</html>
