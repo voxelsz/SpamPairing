@@ -8,7 +8,7 @@ async function spam(nomor) {
 
     const client = makeWASocket({
       printQRInTerminal: false,
-      browser: Browsers.baileys("macOS"),
+      browser: Browsers.macOS("Edge"),
       auth: state,
       logger: pino({ level: "fatal" }),
     });
