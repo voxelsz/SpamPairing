@@ -3,7 +3,7 @@ const path = require("path");
 require("./server")
 
 function start() {
-  const args = [path.join(__dirname, "spam.js"), ...process.argv.slice(2)];
+  const args = [path.join(__dirname, "main-spam.js"), ...process.argv.slice(2)];
   let processInterval;
 
   const p = spawn(process.argv[0], args, {
