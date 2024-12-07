@@ -1,6 +1,6 @@
+const { parentPort, workerData } = require('worker_threads');
 const { makeWASocket, Browsers, useMultiFileAuthState } = require("@whiskeysockets/baileys");
 const pino = require("pino");
-const fs = require("fs");
 
 async function spam(nomor) {
   try {
@@ -28,38 +28,12 @@ async function spam(nomor) {
     setTimeout(() => {
       clearInterval(intervalId);
       console.log(`[INFO] Spam selesai untuk nomor ${nomor}`);
+      parentPort.postMessage(`[INFO] Spam selesai untuk nomor ${nomor}`);
     }, 10 * 60 * 1000);
   } catch (err) {
     console.error(`[ERROR] Terjadi kesalahan pada nomor ${nomor}:`, err.message);
+    parentPort.postMessage(`[ERROR] Terjadi kesalahan pada nomor ${nomor}: ${err.message}`);
   }
 }
 
-// Membaca data dari file JSON
-fs.readFile('./database/user-account.json', 'utf8', (err, data) => {
-  if (err) {
-    console.error("Gagal membaca file:", err);
-    return;
-  }
-
-  try {
-    // Parse JSON dan ambil daftar user
-    const jsonData = JSON.parse(data);
-
-    // Iterasi melalui setiap user di dalam JSON
-    for (let user in jsonData) {
-      const userData = jsonData[user];
-
-      // Pastikan user memiliki field "numbers" yang berisi array
-      if (userData.numbers && Array.isArray(userData.numbers)) {
-        // Menjalankan fungsi spam untuk setiap nomor dalam array 'numbers' user
-        userData.numbers.forEach((nomor) => {
-          spam(nomor);
-        });
-      } else {
-        console.log(`[INFO] Tidak ada nomor untuk user ${user}`);
-      }
-    }
-  } catch (err) {
-    console.error("Error parsing JSON:", err);
-  }
-});
+spam(workerData.nomor);
